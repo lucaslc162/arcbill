@@ -1,0 +1,493 @@
+/* ArcBill — identidade visual própria: painel escuro, âmbar quente */
+
+:root {
+  --bg: #16171b;
+  --surface: #1e2025;
+  --surface-2: #26282e;
+  --border: #2f3138;
+  --amber: #ef9f27;
+  --amber-dark: #412402;
+  --amber-soft: #854f0b;
+  --amber-tint: #faeeda;
+  --text: #f2f2f4;
+  --text-2: #b6b7bd;
+  --text-3: #85868d;
+  --green: #5dcaa5;
+  --red: #e24b4a;
+
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, background 0.15s;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+textarea {
+  font-family: inherit;
+}
+
+/* ---------- Layout ---------- */
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+/* Topo */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--amber);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--amber-dark);
+  font-weight: 700;
+  font-size: 18px;
+}
+.brand-name {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.brand-name span {
+  color: var(--amber);
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 1px;
+}
+
+/* Botão de conectar / conta */
+.btn-connect {
+  background: var(--amber);
+  color: var(--amber-dark);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 8px;
+}
+.btn-connect:hover {
+  background: #f5ab3d;
+}
+.account-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.account-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+/* Hero */
+.hero {
+  margin-bottom: 32px;
+}
+.hero h1 {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+.hero h1 span {
+  color: var(--amber);
+}
+.hero p {
+  color: var(--text-2);
+  font-size: 15px;
+  max-width: 560px;
+  line-height: 1.6;
+}
+
+/* Cartões */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+}
+.card + .card {
+  margin-top: 20px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.card-desc {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-bottom: 18px;
+}
+
+/* Estado de conectar */
+.connect-prompt {
+  text-align: center;
+  padding: 60px 20px;
+}
+.connect-prompt .big {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.connect-prompt .muted {
+  color: var(--text-2);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* Mensagens */
+.msg {
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-top: 14px;
+}
+.msg-error {
+  background: #2a1717;
+  color: #f4a3a3;
+  border: 1px solid #4a2020;
+}
+.msg-ok {
+  background: #14251f;
+  color: var(--green);
+  border: 1px solid #1f4034;
+}
+.msg-info {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+
+/* Botão primário (ações principais) */
+.btn-primary {
+  background: var(--amber);
+  color: var(--amber-dark);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  width: 100%;
+  margin-top: 6px;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #f5ab3d;
+}
+.btn-primary:disabled {
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+
+/* Caixa do registro */
+.reg-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.reg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+.reg-row + .reg-row {
+  border-top: 1px solid var(--border);
+}
+.reg-label {
+  font-size: 13px;
+  color: var(--text-3);
+}
+.reg-addr {
+  font-size: 13px;
+  color: var(--amber);
+  text-decoration: none;
+  font-family: "Courier New", monospace;
+}
+.reg-addr:hover {
+  text-decoration: underline;
+}
+
+/* Badge de status */
+.badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.badge-ok {
+  background: var(--amber-soft);
+  color: var(--amber-tint);
+}
+
+/* Abas */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+}
+.tab {
+  flex: 1;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px;
+  border-radius: 7px;
+}
+.tab:hover:not(:disabled):not(.active) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.tab.active {
+  background: var(--amber);
+  color: var(--amber-dark);
+}
+.tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Campos de formulário */
+.field-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-2);
+  margin: 14px 0 6px;
+}
+.field {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+}
+.field:focus {
+  border-color: var(--amber);
+}
+.field::placeholder {
+  color: var(--text-3);
+}
+
+/* Cabeçalho da lista */
+.invoices-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.btn-refresh {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+.btn-refresh:hover:not(:disabled) {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+/* Lista de faturas */
+.invoice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.invoice {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.invoice-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.invoice-num {
+  font-size: 13px;
+  color: var(--text-3);
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.05em;
+}
+.invoice-amount {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.invoice-amount .usdc {
+  font-size: 13px;
+  color: var(--amber);
+  font-weight: 500;
+}
+.invoice-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+.invoice-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 12px;
+  color: var(--text-3);
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.invoice-meta.paid {
+  color: var(--amber);
+}
+
+/* Badges de status da fatura */
+.badge-pending {
+  background: var(--surface);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+.badge-paid {
+  background: var(--amber-soft);
+  color: var(--amber-tint);
+}
+.badge-cancel {
+  background: #3a1f1f;
+  color: #f0a0a0;
+}
+
+/* Ações e compartilhamento */
+.invoice-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+}
+.btn-mini {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 7px;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-mini:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.share-panel {
+  margin-top: 14px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+}
+.qr {
+  width: 180px;
+  height: 180px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.share-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.share-hint {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.back-btn {
+  margin-top: 16px;
+}
+
+/* Rodapé */
+.footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-3);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer a {
+  color: var(--amber);
+  text-decoration: none;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
+.footer-links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
