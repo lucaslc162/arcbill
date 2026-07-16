@@ -1,4 +1,4 @@
-// ArcBill — conexão de carteira (injected: OKX/MetaMask) e clientes viem
+// ArcBill — wallet connection (injected: OKX/MetaMask) and viem clients
 import {
   createPublicClient,
   createWalletClient,
@@ -8,24 +8,25 @@ import {
 } from "viem";
 import { ARC_TESTNET, CHAIN_ID_HEX } from "./config";
 
-// Cliente público (leitura da blockchain) — usa o RPC da Arc.
-// Configurado para tolerar rate limit (429): tenta novamente com espera,
-// e usa um intervalo de polling mais espaçado para não sobrecarregar o RPC.
+// Public client (reads the blockchain) — uses Arc's RPC.
+// Tolerant to rate limit (429): retries with delay and uses a slower polling.
 export const publicClient = createPublicClient({
   chain: ARC_TESTNET,
   transport: http(undefined, {
     retryCount: 5,
-    retryDelay: 2000, // espera 2s entre tentativas quando o RPC responde 429
+    retryDelay: 2000,
     timeout: 60000,
   }),
-  pollingInterval: 4000, // consulta a blockchain a cada 4s (menos requisições)
+  pollingInterval: 4000,
 });
 
+// Finds the injected provider, checking OKX's own namespace first.
 function getInjectedProvider() {
-  if (typeof window === "undefined" || !window.ethereum) {
-    return null;
-  }
-  return window.ethereum;
+  if (typeof window === "undefined") return null;
+  // OKX injects itself here (and also in window.ethereum)
+  if (window.okxwallet) return window.okxwallet;
+  if (window.ethereum) return window.ethereum;
+  return null;
 }
 
 export async function ensureArcNetwork(provider) {
@@ -58,7 +59,7 @@ export async function connectWallet() {
   const provider = getInjectedProvider();
   if (!provider) {
     throw new Error(
-      "Nenhuma carteira encontrada. Instale a OKX Wallet ou MetaMask."
+      "No wallet found. Please install OKX Wallet or MetaMask."
     );
   }
 
