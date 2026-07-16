@@ -1,9 +1,8 @@
-// ArcBill — endpoint de envio de fatura por e-mail (Vercel serverless + Gmail)
-// Usa as variáveis de ambiente EMAIL_SENDER e EMAIL_PASSWORD (senha de app do Gmail).
-const nodemailer = require("nodemailer");
+// ArcBill — invoice e-mail endpoint (Vercel serverless + Gmail)
+// Uses environment variables EMAIL_SENDER and EMAIL_PASSWORD (Gmail app password).
+import nodemailer from "nodemailer";
 
-module.exports = async (req, res) => {
-  // Só aceita POST
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
@@ -11,13 +10,13 @@ module.exports = async (req, res) => {
 
   try {
     const {
-      to, // e-mail do cliente (destinatário)
-      invoiceNumber, // ex "001"
-      amount, // ex "250.00"
-      description, // descrição do serviço
-      link, // link de pagamento
-      issuedUTC, // data de emissão em UTC
-      issuedBRT, // data de emissão em BRT
+      to,
+      invoiceNumber,
+      amount,
+      description,
+      link,
+      issuedUTC,
+      issuedBRT,
     } = req.body || {};
 
     if (!to || !link || !invoiceNumber) {
@@ -33,7 +32,6 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Configura o transporte pelo Gmail
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -44,14 +42,14 @@ module.exports = async (req, res) => {
 
     const amountLine = amount ? `${amount} USDC` : "";
     const descLine = description
-      ? `<p style="margin:0 0 8px;color:#444;">Description: ${description}</p>`
+      ? `<p style="margin:0 0 8px;color:#c9c9cf;">Description: ${description}</p>`
       : "";
     const dateLine =
       issuedUTC || issuedBRT
         ? `<p style="margin:0 0 4px;color:#888;font-size:13px;">Issued (UTC): ${
             issuedUTC || "—"
           }</p>
-           <p style="margin:0 0 16px;color:#888;font-size:13px;">Issued (BRT): ${
+           <p style="margin:0 0 0;color:#888;font-size:13px;">Issued (BRT): ${
              issuedBRT || "—"
            }</p>`
         : "";
@@ -84,7 +82,7 @@ module.exports = async (req, res) => {
     await transporter.sendMail({
       from: `ArcBill <${sender}>`,
       to,
-      cc: sender, // cópia pro remetente
+      cc: sender,
       subject: `ArcBill Invoice #${invoiceNumber}`,
       html,
     });
@@ -94,4 +92,4 @@ module.exports = async (req, res) => {
     console.error("invoice-email error:", err);
     res.status(500).json({ error: "Could not send the e-mail." });
   }
-};
+}
