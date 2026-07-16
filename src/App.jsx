@@ -7,6 +7,7 @@ import {
   getAllInvoices,
   getInvoice,
   payInvoice,
+  getPaymentTxHash,
 } from "./contracts";
 import {
   formatUSDC,
@@ -38,6 +39,7 @@ export default function App() {
   const [invoices, setInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [txHashes, setTxHashes] = useState({}); // { invoiceId: txHash }
+  const [loadingHash, setLoadingHash] = useState(null);
 
   const [shareOpen, setShareOpen] = useState(null);
   const [qrData, setQrData] = useState("");
@@ -133,12 +135,52 @@ export default function App() {
     }
   }
 
-  // Abre o comprovante no explorer. Usa o hash se já tivermos (do pagamento
-  // feito neste app); caso contrário, abre o contrato do registro no ArcScan.
-  function handleViewExplorer(inv) {
+  // Abre o comprovante no explorer.
+  // 1) usa o hash em memória, 2) busca no localStorage, 3) busca na blockchain
+  // (uma vez, salvando no localStorage). Se nada achar, abre o contrato.
+  async function handleViewExplorer(inv) {
     const id = String(inv.id);
-    if (txHashes[id]) {
-      window.open("https://testnet.arcscan.app/tx/" + txHashes[id], "_blank");
+    const storageKey = "arcbill_tx_" + registry + "_" + id;
+
+    // 1) hash em memória
+    let hash = txHashes[id];
+
+    // 2) hash salvo no navegador
+    if (!hash) {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          hash = stored;
+          setTxHashes((prev) => ({ ...prev, [id]: stored }));
+        }
+      } catch {
+        // localStorage indisponível — ignora
+      }
+    }
+
+    // 3) busca na blockchain (só neste clique)
+    if (!hash) {
+      setLoadingHash(id);
+      try {
+        const found = await getPaymentTxHash(registry, inv.id);
+        if (found) {
+          hash = found;
+          setTxHashes((prev) => ({ ...prev, [id]: found }));
+          try {
+            localStorage.setItem(storageKey, found);
+          } catch {
+            // ignora
+          }
+        }
+      } catch {
+        // ignora — cai no fallback
+      } finally {
+        setLoadingHash(null);
+      }
+    }
+
+    if (hash) {
+      window.open("https://testnet.arcscan.app/tx/" + hash, "_blank");
     } else {
       window.open("https://testnet.arcscan.app/address/" + registry, "_blank");
     }
@@ -153,6 +195,20 @@ export default function App() {
       const list = await getAllInvoices(target);
       const ordered = [...list].reverse();
       setInvoices(ordered);
+      // Recupera hashes salvos no navegador (para "View on explorer")
+      try {
+        const saved = {};
+        for (const inv of ordered) {
+          const key = "arcbill_tx_" + target + "_" + String(inv.id);
+          const stored = localStorage.getItem(key);
+          if (stored) saved[String(inv.id)] = stored;
+        }
+        if (Object.keys(saved).length > 0) {
+          setTxHashes((prev) => ({ ...prev, ...saved }));
+        }
+      } catch {
+        // localStorage indisponível — ignora
+      }
     } catch (err) {
       // Uma única nova tentativa após um instante (evita bombardear o RPC)
       if (attempt < 1) {
@@ -282,7 +338,18 @@ export default function App() {
         payTarget.invoice,
         payInvoiceData.amount
       );
-      if (hash) setPayTxHash(hash);
+      if (hash) {
+        setPayTxHash(hash);
+        // Guarda o hash para "View on explorer" (persistente no navegador)
+        try {
+          const key =
+            "arcbill_tx_" + payTarget.registry + "_" + payTarget.invoice;
+          localStorage.setItem(key, hash);
+        } catch {
+          // ignora
+        }
+        setTxHashes((prev) => ({ ...prev, [String(payTarget.invoice)]: hash }));
+      }
       setPayNotice("Invoice paid successfully.");
       await loadPayInvoice(payTarget.registry, payTarget.invoice);
     } catch (err) {
@@ -631,8 +698,11 @@ export default function App() {
                             <button
                               className="explorer-link"
                               onClick={() => handleViewExplorer(inv)}
+                              disabled={loadingHash === String(inv.id)}
                             >
-                              View on explorer ↗
+                              {loadingHash === String(inv.id)
+                                ? "Opening…"
+                                : "View on explorer ↗"}
                             </button>
                           </div>
                         )}
