@@ -403,6 +403,12 @@ textarea {
   color: var(--amber);
   text-decoration: none;
   font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
 }
 .explorer-link:hover {
   text-decoration: underline;

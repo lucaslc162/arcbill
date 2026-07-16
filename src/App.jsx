@@ -39,6 +39,7 @@ export default function App() {
   const [invoices, setInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [txHashes, setTxHashes] = useState({}); // { invoiceId: txHash }
+  const [loadingHash, setLoadingHash] = useState(null); // id sendo buscado
 
   const [shareOpen, setShareOpen] = useState(null);
   const [qrData, setQrData] = useState("");
@@ -123,7 +124,32 @@ export default function App() {
     }
   }
 
-  async function loadInvoices(reg) {
+  // Abre a transação de pagamento no explorer. Busca o hash só no clique.
+  async function handleViewExplorer(inv) {
+    const id = String(inv.id);
+    // Se já temos o hash, abre direto
+    if (txHashes[id]) {
+      window.open("https://testnet.arcscan.app/tx/" + txHashes[id], "_blank");
+      return;
+    }
+    setLoadingHash(id);
+    try {
+      const hash = await getPaymentTxHash(registry, inv.id);
+      if (hash) {
+        setTxHashes((prev) => ({ ...prev, [id]: hash }));
+        window.open("https://testnet.arcscan.app/tx/" + hash, "_blank");
+      } else {
+        // fallback: abre o contrato do registro
+        window.open("https://testnet.arcscan.app/address/" + registry, "_blank");
+      }
+    } catch {
+      window.open("https://testnet.arcscan.app/address/" + registry, "_blank");
+    } finally {
+      setLoadingHash(null);
+    }
+  }
+
+  async function loadInvoices(reg, attempt = 0) {
     const target = reg || registry;
     if (!target) return;
     setLoadingInvoices(true);
@@ -132,15 +158,12 @@ export default function App() {
       const list = await getAllInvoices(target);
       const ordered = [...list].reverse();
       setInvoices(ordered);
-      // Fetch payment tx hashes for paid invoices (for "View on explorer")
-      const paid = ordered.filter((inv) => Number(inv.status) === 1);
-      const hashes = {};
-      for (const inv of paid) {
-        const h = await getPaymentTxHash(target, inv.id);
-        if (h) hashes[String(inv.id)] = h;
-      }
-      setTxHashes(hashes);
     } catch (err) {
+      // Se falhou (ex: RPC 429), tenta de novo automaticamente até 3 vezes
+      if (attempt < 3) {
+        setTimeout(() => loadInvoices(target, attempt + 1), 1500);
+        return;
+      }
       if (invoices.length === 0) {
         setError("Could not load invoices. Tap Refresh to try again.");
       }
@@ -239,11 +262,11 @@ export default function App() {
     try {
       const data = await getInvoice(reg, inv);
       setPayInvoiceData(data);
+      // Se está paga e ainda não temos o hash, busca (uma fatura só = leve)
       if (Number(data.status) === 1) {
-        const h = await getPaymentTxHash(reg, inv);
-        setPayTxHash(h);
-      } else {
-        setPayTxHash(null);
+        setPayTxHash((prev) => prev); // mantém o hash se já veio do pagamento
+        const current = await getPaymentTxHash(reg, inv);
+        if (current) setPayTxHash(current);
       }
     } catch (err) {
       setPayError("Invoice not found. Please check the link.");
@@ -261,13 +284,14 @@ export default function App() {
     }
     setPaying(true);
     try {
-      await payInvoice(
+      const hash = await payInvoice(
         walletClient,
         address,
         payTarget.registry,
         payTarget.invoice,
         payInvoiceData.amount
       );
+      if (hash) setPayTxHash(hash);
       setPayNotice("Invoice paid successfully.");
       await loadPayInvoice(payTarget.registry, payTarget.invoice);
     } catch (err) {
@@ -608,19 +632,14 @@ export default function App() {
                           <div className="invoice-meta paid">
                             <span>Paid by: {shortAddr(inv.payer)}</span>
                             <span>On (BRT): {paidDates.brt}</span>
-                            <a
+                            <button
                               className="explorer-link"
-                              href={
-                                txHashes[String(inv.id)]
-                                  ? "https://testnet.arcscan.app/tx/" +
-                                    txHashes[String(inv.id)]
-                                  : scanBase + registry
-                              }
-                              target="_blank"
-                              rel="noreferrer"
+                              onClick={() => handleViewExplorer(inv)}
                             >
-                              View on explorer ↗
-                            </a>
+                              {loadingHash === String(inv.id)
+                                ? "Opening…"
+                                : "View on explorer ↗"}
+                            </button>
                           </div>
                         )}
 
