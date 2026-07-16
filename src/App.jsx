@@ -68,6 +68,17 @@ export default function App() {
     }
   }, []);
 
+  function handleDisconnect() {
+    setAddress(null);
+    setWalletClient(null);
+    setRegistry(null);
+    setInvoices([]);
+    setTxHashes({});
+    setNotice("");
+    setError("");
+    setTab("registry");
+  }
+
   async function handleConnect() {
     setError("");
     setNotice("");
@@ -315,10 +326,15 @@ export default function App() {
         </div>
 
         {address ? (
-          <div className="account-pill">
+          <button
+            className="account-pill"
+            onClick={handleDisconnect}
+            title="Disconnect wallet"
+          >
             <span className="account-dot" />
             {shortAddr(address)}
-          </div>
+            <span className="disconnect-x">✕</span>
+          </button>
         ) : (
           <button
             className="btn-connect"

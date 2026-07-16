@@ -119,6 +119,20 @@ textarea {
   padding: 8px 14px;
   font-size: 13px;
   color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.account-pill:hover {
+  border-color: var(--amber);
+}
+.disconnect-x {
+  color: var(--text-3);
+  font-size: 11px;
+  margin-left: 2px;
+}
+.account-pill:hover .disconnect-x {
+  color: var(--amber);
 }
 .account-dot {
   width: 8px;
