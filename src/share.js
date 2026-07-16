@@ -26,7 +26,7 @@ export async function buildQRCode(link) {
 
 // Sends the invoice by e-mail through the serverless endpoint (Gmail).
 // Returns true on success; throws on failure.
-export async function sendInvoiceEmail(toEmail, invoice, link) {
+export async function sendInvoiceEmail(toEmail, invoice, link, registryAddress) {
   const dates = formatDates(invoice.createdAt);
   const res = await fetch("/api/invoice-email", {
     method: "POST",
@@ -39,6 +39,8 @@ export async function sendInvoiceEmail(toEmail, invoice, link) {
       link,
       issuedUTC: dates.utc,
       issuedBRT: dates.brt,
+      status: Number(invoice.status), // 0 pending, 1 paid, 2 cancelled
+      registry: registryAddress,
     }),
   });
 

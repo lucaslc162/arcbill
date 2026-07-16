@@ -201,7 +201,7 @@ export default function App() {
     setSendingEmail(true);
     try {
       const link = buildPaymentLink(registry, inv.id);
-      await sendInvoiceEmail(email, inv, link);
+      await sendInvoiceEmail(email, inv, link, registry);
       setEmailMsg("Invoice sent to " + email + ".");
       setEmailTo("");
     } catch (err) {
@@ -365,7 +365,19 @@ export default function App() {
                   </button>
                 )
               ) : Number(payInvoiceData.status) === 1 ? (
-                <div className="msg msg-ok">This invoice has already been paid.</div>
+                <>
+                  <div className="msg msg-ok">
+                    This invoice has already been paid.
+                  </div>
+                  <a
+                    className="btn-primary explorer-btn"
+                    href={"https://testnet.arcscan.app/address/" + payTarget.registry}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View on explorer ↗
+                  </a>
+                </>
               ) : (
                 <div className="msg msg-info">This invoice was cancelled.</div>
               )}
@@ -574,6 +586,14 @@ export default function App() {
                           <div className="invoice-meta paid">
                             <span>Paid by: {shortAddr(inv.payer)}</span>
                             <span>On (BRT): {paidDates.brt}</span>
+                            <a
+                              className="explorer-link"
+                              href={scanBase + registry}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              View on explorer ↗
+                            </a>
                           </div>
                         )}
 
