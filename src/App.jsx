@@ -7,7 +7,6 @@ import {
   getAllInvoices,
   getInvoice,
   payInvoice,
-  getPaymentTxHash,
 } from "./contracts";
 import {
   formatUSDC,
@@ -39,7 +38,6 @@ export default function App() {
   const [invoices, setInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [txHashes, setTxHashes] = useState({}); // { invoiceId: txHash }
-  const [loadingHash, setLoadingHash] = useState(null); // id sendo buscado
 
   const [shareOpen, setShareOpen] = useState(null);
   const [qrData, setQrData] = useState("");
@@ -124,28 +122,14 @@ export default function App() {
     }
   }
 
-  // Abre a transação de pagamento no explorer. Busca o hash só no clique.
-  async function handleViewExplorer(inv) {
+  // Abre o comprovante no explorer. Usa o hash se já tivermos (do pagamento
+  // feito neste app); caso contrário, abre o contrato do registro no ArcScan.
+  function handleViewExplorer(inv) {
     const id = String(inv.id);
-    // Se já temos o hash, abre direto
     if (txHashes[id]) {
       window.open("https://testnet.arcscan.app/tx/" + txHashes[id], "_blank");
-      return;
-    }
-    setLoadingHash(id);
-    try {
-      const hash = await getPaymentTxHash(registry, inv.id);
-      if (hash) {
-        setTxHashes((prev) => ({ ...prev, [id]: hash }));
-        window.open("https://testnet.arcscan.app/tx/" + hash, "_blank");
-      } else {
-        // fallback: abre o contrato do registro
-        window.open("https://testnet.arcscan.app/address/" + registry, "_blank");
-      }
-    } catch {
+    } else {
       window.open("https://testnet.arcscan.app/address/" + registry, "_blank");
-    } finally {
-      setLoadingHash(null);
     }
   }
 
@@ -262,12 +246,8 @@ export default function App() {
     try {
       const data = await getInvoice(reg, inv);
       setPayInvoiceData(data);
-      // Se está paga e ainda não temos o hash, busca (uma fatura só = leve)
-      if (Number(data.status) === 1) {
-        setPayTxHash((prev) => prev); // mantém o hash se já veio do pagamento
-        const current = await getPaymentTxHash(reg, inv);
-        if (current) setPayTxHash(current);
-      }
+      // Não buscamos o hash aqui (evita sobrecarregar o RPC). Se a pessoa
+      // pagar agora pelo app, o hash é capturado no momento do pagamento.
     } catch (err) {
       setPayError("Invoice not found. Please check the link.");
     } finally {
@@ -636,9 +616,7 @@ export default function App() {
                               className="explorer-link"
                               onClick={() => handleViewExplorer(inv)}
                             >
-                              {loadingHash === String(inv.id)
-                                ? "Opening…"
-                                : "View on explorer ↗"}
+                              View on explorer ↗
                             </button>
                           </div>
                         )}

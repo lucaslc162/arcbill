@@ -4,31 +4,19 @@ import {
   createWalletClient,
   custom,
   http,
-  fallback,
   publicActions,
 } from "viem";
 import { ARC_TESTNET, CHAIN_ID_HEX } from "./config";
 
-// Public client (reads the blockchain).
-// Uses a fallback between the dRPC endpoint (robust) and the official one,
-// switching automatically if one is rate-limited or fails.
+// Public client (reads the blockchain) — uses Arc's official RPC.
+// Moderate retry to tolerate occasional rate limiting.
 export const publicClient = createPublicClient({
   chain: ARC_TESTNET,
-  transport: fallback(
-    [
-      http("https://arc-testnet.drpc.org", {
-        retryCount: 2,
-        retryDelay: 1500,
-        timeout: 30000,
-      }),
-      http("https://rpc.testnet.arc.network", {
-        retryCount: 2,
-        retryDelay: 1500,
-        timeout: 30000,
-      }),
-    ],
-    { rank: false }
-  ),
+  transport: http("https://rpc.testnet.arc.network", {
+    retryCount: 3,
+    retryDelay: 1500,
+    timeout: 30000,
+  }),
   pollingInterval: 6000,
 });
 
