@@ -1,6 +1,6 @@
 // ArcBill — invoice sharing: link, QR Code and e-mail
 import QRCode from "qrcode";
-import { formatUSDC, formatInvoiceNumber } from "./format";
+import { formatUSDC, formatInvoiceNumber, formatDates } from "./format";
 
 // Builds the public payment link for an invoice.
 export function buildPaymentLink(registryAddress, invoiceId) {
@@ -24,21 +24,33 @@ export async function buildQRCode(link) {
   });
 }
 
-// Builds a mailto: opens the user's e-mail app with the invoice ready.
-export function buildMailto(invoice, link) {
-  const num = formatInvoiceNumber(invoice.id);
-  const value = formatUSDC(invoice.amount);
-  const subject = `ArcBill Invoice #${num}`;
-  const body =
-    `Hi!\n\n` +
-    `Here is invoice #${num} for ${value} USDC` +
-    (invoice.description ? ` regarding "${invoice.description}".` : ".") +
-    `\n\nTo pay on the Arc network, open the link below and connect your wallet:\n${link}\n\n` +
-    `Thank you.`;
-  return (
-    "mailto:?subject=" +
-    encodeURIComponent(subject) +
-    "&body=" +
-    encodeURIComponent(body)
-  );
+// Sends the invoice by e-mail through the serverless endpoint (Gmail).
+// Returns true on success; throws on failure.
+export async function sendInvoiceEmail(toEmail, invoice, link) {
+  const dates = formatDates(invoice.createdAt);
+  const res = await fetch("/api/invoice-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to: toEmail,
+      invoiceNumber: formatInvoiceNumber(invoice.id),
+      amount: formatUSDC(invoice.amount),
+      description: invoice.description,
+      link,
+      issuedUTC: dates.utc,
+      issuedBRT: dates.brt,
+    }),
+  });
+
+  if (!res.ok) {
+    let msg = "Could not send the e-mail.";
+    try {
+      const data = await res.json();
+      if (data && data.error) msg = data.error;
+    } catch {
+      // ignore
+    }
+    throw new Error(msg);
+  }
+  return true;
 }

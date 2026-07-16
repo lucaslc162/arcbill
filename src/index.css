@@ -463,6 +463,26 @@ textarea {
   font-size: 12px;
   color: var(--text-3);
 }
+.email-box {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+.email-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.email-row .field {
+  flex: 1;
+  margin: 0;
+}
+.send-btn {
+  white-space: nowrap;
+  align-self: stretch;
+  padding: 7px 18px;
+}
 .back-btn {
   margin-top: 16px;
 }

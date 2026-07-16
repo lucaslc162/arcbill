@@ -15,7 +15,7 @@ import {
   formatInvoiceNumber,
   shortAddr,
 } from "./format";
-import { buildPaymentLink, buildQRCode, buildMailto } from "./share";
+import { buildPaymentLink, buildQRCode, sendInvoiceEmail } from "./share";
 import "./index.css";
 
 export default function App() {
@@ -41,6 +41,12 @@ export default function App() {
   const [shareOpen, setShareOpen] = useState(null);
   const [qrData, setQrData] = useState("");
   const [copied, setCopied] = useState(false);
+
+  // E-mail sending (share panel)
+  const [emailTo, setEmailTo] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailMsg, setEmailMsg] = useState("");
+  const [emailErr, setEmailErr] = useState("");
 
   const [payTarget, setPayTarget] = useState(null);
   const [payInvoiceData, setPayInvoiceData] = useState(null);
@@ -165,6 +171,9 @@ export default function App() {
   }
 
   async function toggleShare(inv) {
+    setEmailTo("");
+    setEmailMsg("");
+    setEmailErr("");
     if (shareOpen === String(inv.id)) {
       setShareOpen(null);
       setQrData("");
@@ -178,6 +187,27 @@ export default function App() {
       setQrData(qr);
     } catch {
       setQrData("");
+    }
+  }
+
+  async function handleSendEmail(inv) {
+    setEmailMsg("");
+    setEmailErr("");
+    const email = emailTo.trim();
+    if (!email || !email.includes("@") || !email.includes(".")) {
+      setEmailErr("Enter a valid e-mail address.");
+      return;
+    }
+    setSendingEmail(true);
+    try {
+      const link = buildPaymentLink(registry, inv.id);
+      await sendInvoiceEmail(email, inv, link);
+      setEmailMsg("Invoice sent to " + email + ".");
+      setEmailTo("");
+    } catch (err) {
+      setEmailErr(err.message || "Could not send the e-mail.");
+    } finally {
+      setSendingEmail(false);
     }
   }
 
@@ -572,16 +602,38 @@ export default function App() {
                               >
                                 {copied ? "Link copied!" : "Copy link"}
                               </button>
-                              <a
-                                className="btn-mini"
-                                href={buildMailto(inv, link)}
-                              >
-                                Send by e-mail
-                              </a>
                             </div>
                             <div className="share-hint">
                               The QR and the link open this invoice’s payment
                               page.
+                            </div>
+
+                            <div className="email-box">
+                              <label className="field-label">
+                                Send invoice to customer’s e-mail
+                              </label>
+                              <div className="email-row">
+                                <input
+                                  className="field"
+                                  type="email"
+                                  placeholder="customer@email.com"
+                                  value={emailTo}
+                                  onChange={(e) => setEmailTo(e.target.value)}
+                                />
+                                <button
+                                  className="btn-mini send-btn"
+                                  onClick={() => handleSendEmail(inv)}
+                                  disabled={sendingEmail}
+                                >
+                                  {sendingEmail ? "Sending…" : "Send"}
+                                </button>
+                              </div>
+                              {emailMsg && (
+                                <div className="msg msg-ok">{emailMsg}</div>
+                              )}
+                              {emailErr && (
+                                <div className="msg msg-error">{emailErr}</div>
+                              )}
                             </div>
                           </div>
                         )}
