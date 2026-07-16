@@ -19,6 +19,7 @@ export default async function handler(req, res) {
       issuedBRT,
       status,
       registry,
+      txHash,
     } = req.body || {};
 
     if (!to || !link || !invoiceNumber) {
@@ -43,7 +44,9 @@ export default async function handler(req, res) {
     });
 
     const isPaid = Number(status) === 1;
-    const explorerUrl = registry
+    const explorerUrl = txHash
+      ? `https://testnet.arcscan.app/tx/${txHash}`
+      : registry
       ? `https://testnet.arcscan.app/address/${registry}`
       : null;
 

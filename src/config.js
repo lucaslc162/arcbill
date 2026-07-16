@@ -124,6 +124,16 @@ export const REGISTRY_ABI = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "id", type: "uint256" },
+      { indexed: true, internalType: "address", name: "payer", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+    ],
+    name: "InvoicePaid",
+    type: "event",
+  },
 ];
 
 // ABI do USDC (approve, allowance, balanceOf)

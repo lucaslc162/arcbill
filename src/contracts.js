@@ -128,3 +128,32 @@ export async function payInvoice(
   await publicClient.waitForTransactionReceipt({ hash: payHash });
   return payHash;
 }
+
+// Busca o hash da transação que pagou uma fatura (evento InvoicePaid).
+// Retorna o txHash, ou null se não encontrar.
+export async function getPaymentTxHash(registryAddress, invoiceId) {
+  try {
+    const logs = await publicClient.getLogs({
+      address: registryAddress,
+      event: {
+        type: "event",
+        name: "InvoicePaid",
+        inputs: [
+          { indexed: true, name: "id", type: "uint256" },
+          { indexed: true, name: "payer", type: "address" },
+          { indexed: false, name: "amount", type: "uint256" },
+        ],
+      },
+      args: { id: BigInt(invoiceId) },
+      fromBlock: 0n,
+      toBlock: "latest",
+    });
+    if (logs && logs.length > 0) {
+      // pega a transação mais recente que pagou essa fatura
+      return logs[logs.length - 1].transactionHash;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}

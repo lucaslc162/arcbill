@@ -7,6 +7,7 @@ import {
   getAllInvoices,
   getInvoice,
   payInvoice,
+  getPaymentTxHash,
 } from "./contracts";
 import {
   formatUSDC,
@@ -37,6 +38,7 @@ export default function App() {
 
   const [invoices, setInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
+  const [txHashes, setTxHashes] = useState({}); // { invoiceId: txHash }
 
   const [shareOpen, setShareOpen] = useState(null);
   const [qrData, setQrData] = useState("");
@@ -50,6 +52,7 @@ export default function App() {
 
   const [payTarget, setPayTarget] = useState(null);
   const [payInvoiceData, setPayInvoiceData] = useState(null);
+  const [payTxHash, setPayTxHash] = useState(null);
   const [loadingPay, setLoadingPay] = useState(false);
   const [paying, setPaying] = useState(false);
   const [payNotice, setPayNotice] = useState("");
@@ -127,9 +130,17 @@ export default function App() {
     setError("");
     try {
       const list = await getAllInvoices(target);
-      setInvoices([...list].reverse());
+      const ordered = [...list].reverse();
+      setInvoices(ordered);
+      // Fetch payment tx hashes for paid invoices (for "View on explorer")
+      const paid = ordered.filter((inv) => Number(inv.status) === 1);
+      const hashes = {};
+      for (const inv of paid) {
+        const h = await getPaymentTxHash(target, inv.id);
+        if (h) hashes[String(inv.id)] = h;
+      }
+      setTxHashes(hashes);
     } catch (err) {
-      // Only show the error if we have nothing to display yet
       if (invoices.length === 0) {
         setError("Could not load invoices. Tap Refresh to try again.");
       }
@@ -201,7 +212,7 @@ export default function App() {
     setSendingEmail(true);
     try {
       const link = buildPaymentLink(registry, inv.id);
-      await sendInvoiceEmail(email, inv, link, registry);
+      await sendInvoiceEmail(email, inv, link, registry, txHashes[String(inv.id)]);
       setEmailMsg("Invoice sent to " + email + ".");
       setEmailTo("");
     } catch (err) {
@@ -228,6 +239,12 @@ export default function App() {
     try {
       const data = await getInvoice(reg, inv);
       setPayInvoiceData(data);
+      if (Number(data.status) === 1) {
+        const h = await getPaymentTxHash(reg, inv);
+        setPayTxHash(h);
+      } else {
+        setPayTxHash(null);
+      }
     } catch (err) {
       setPayError("Invoice not found. Please check the link.");
     } finally {
@@ -371,7 +388,12 @@ export default function App() {
                   </div>
                   <a
                     className="btn-primary explorer-btn"
-                    href={"https://testnet.arcscan.app/address/" + payTarget.registry}
+                    href={
+                      payTxHash
+                        ? "https://testnet.arcscan.app/tx/" + payTxHash
+                        : "https://testnet.arcscan.app/address/" +
+                          payTarget.registry
+                    }
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -588,7 +610,12 @@ export default function App() {
                             <span>On (BRT): {paidDates.brt}</span>
                             <a
                               className="explorer-link"
-                              href={scanBase + registry}
+                              href={
+                                txHashes[String(inv.id)]
+                                  ? "https://testnet.arcscan.app/tx/" +
+                                    txHashes[String(inv.id)]
+                                  : scanBase + registry
+                              }
                               target="_blank"
                               rel="noreferrer"
                             >
