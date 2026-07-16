@@ -131,26 +131,45 @@ export async function payInvoice(
 
 // Busca o hash da transação que pagou uma fatura (evento InvoicePaid).
 // Retorna o txHash, ou null se não encontrar.
+// Busca em janelas recentes de blocos para não sobrecarregar o RPC (evita 413/429).
 export async function getPaymentTxHash(registryAddress, invoiceId) {
+  const eventDef = {
+    type: "event",
+    name: "InvoicePaid",
+    inputs: [
+      { indexed: true, name: "id", type: "uint256" },
+      { indexed: true, name: "payer", type: "address" },
+      { indexed: false, name: "amount", type: "uint256" },
+    ],
+  };
+
   try {
-    const logs = await publicClient.getLogs({
-      address: registryAddress,
-      event: {
-        type: "event",
-        name: "InvoicePaid",
-        inputs: [
-          { indexed: true, name: "id", type: "uint256" },
-          { indexed: true, name: "payer", type: "address" },
-          { indexed: false, name: "amount", type: "uint256" },
-        ],
-      },
-      args: { id: BigInt(invoiceId) },
-      fromBlock: 0n,
-      toBlock: "latest",
-    });
-    if (logs && logs.length > 0) {
-      // pega a transação mais recente que pagou essa fatura
-      return logs[logs.length - 1].transactionHash;
+    const latest = await publicClient.getBlockNumber();
+    const WINDOW = 9000n; // tamanho de cada janela de busca
+    const MAX_WINDOWS = 12; // até ~108k blocos para trás
+
+    let toBlock = latest;
+    for (let i = 0; i < MAX_WINDOWS; i++) {
+      let fromBlock = toBlock - WINDOW;
+      if (fromBlock < 0n) fromBlock = 0n;
+
+      try {
+        const logs = await publicClient.getLogs({
+          address: registryAddress,
+          event: eventDef,
+          args: { id: BigInt(invoiceId) },
+          fromBlock,
+          toBlock,
+        });
+        if (logs && logs.length > 0) {
+          return logs[logs.length - 1].transactionHash;
+        }
+      } catch {
+        // se essa janela falhar, tenta a próxima
+      }
+
+      if (fromBlock === 0n) break;
+      toBlock = fromBlock - 1n;
     }
     return null;
   } catch {
