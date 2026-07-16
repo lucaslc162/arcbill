@@ -159,9 +159,9 @@ export default function App() {
       const ordered = [...list].reverse();
       setInvoices(ordered);
     } catch (err) {
-      // Se falhou (ex: RPC 429), tenta de novo automaticamente até 3 vezes
-      if (attempt < 3) {
-        setTimeout(() => loadInvoices(target, attempt + 1), 1500);
+      // Uma única nova tentativa após um instante (evita bombardear o RPC)
+      if (attempt < 1) {
+        setTimeout(() => loadInvoices(target, attempt + 1), 2500);
         return;
       }
       if (invoices.length === 0) {

@@ -4,20 +4,32 @@ import {
   createWalletClient,
   custom,
   http,
+  fallback,
   publicActions,
 } from "viem";
 import { ARC_TESTNET, CHAIN_ID_HEX } from "./config";
 
-// Public client (reads the blockchain) — uses Arc's RPC.
-// Tolerant to rate limit (429): retries with delay and uses a slower polling.
+// Public client (reads the blockchain).
+// Uses a fallback between the dRPC endpoint (robust) and the official one,
+// switching automatically if one is rate-limited or fails.
 export const publicClient = createPublicClient({
   chain: ARC_TESTNET,
-  transport: http(undefined, {
-    retryCount: 5,
-    retryDelay: 2000,
-    timeout: 60000,
-  }),
-  pollingInterval: 4000,
+  transport: fallback(
+    [
+      http("https://arc-testnet.drpc.org", {
+        retryCount: 2,
+        retryDelay: 1500,
+        timeout: 30000,
+      }),
+      http("https://rpc.testnet.arc.network", {
+        retryCount: 2,
+        retryDelay: 1500,
+        timeout: 30000,
+      }),
+    ],
+    { rank: false }
+  ),
+  pollingInterval: 6000,
 });
 
 // Finds the injected provider, checking OKX's own namespace first.

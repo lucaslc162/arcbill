@@ -145,8 +145,8 @@ export async function getPaymentTxHash(registryAddress, invoiceId) {
 
   try {
     const latest = await publicClient.getBlockNumber();
-    const WINDOW = 9000n; // tamanho de cada janela de busca
-    const MAX_WINDOWS = 12; // até ~108k blocos para trás
+    const WINDOW = 45000n; // janela maior, menos requisições
+    const MAX_WINDOWS = 4; // até ~180k blocos para trás
 
     let toBlock = latest;
     for (let i = 0; i < MAX_WINDOWS; i++) {
