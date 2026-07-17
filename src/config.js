@@ -13,7 +13,14 @@ export const ARC_TESTNET = {
   name: "Arc Network Testnet",
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
   rpcUrls: {
-    default: { http: ["https://rpc.testnet.arc.network"] },
+    default: {
+      http: [
+        "https://rpc.testnet.arc.io",
+        "https://rpc.blockdaemon.testnet.arc.io",
+        "https://rpc.drpc.testnet.arc.io",
+        "https://rpc.quicknode.testnet.arc.io",
+      ],
+    },
   },
   blockExplorers: {
     default: { name: "ArcScan", url: "https://testnet.arcscan.app" },
