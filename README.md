@@ -1,6 +1,6 @@
 # ArcBill
 
-**Onchain invoicing on Arc Testnet — issue, share, and settle invoices in USDC, fully on the blockchain.**
+**Onchain invoicing on Arc Testnet - issue, share, and settle invoices in USDC, fully on the blockchain.**
 
 🔗 Live app: [arcbillapp.xyz](https://arcbillapp.xyz)
 
@@ -11,11 +11,11 @@
 ArcBill lets anyone issue payment invoices that live entirely onchain. Each invoice is a record on a smart contract, paid in USDC, with the settlement verifiable on the block explorer.
 
 - **Connect a wallet** (OKX / MetaMask) on Arc Testnet.
-- **Create your own invoice registry** — a personal smart contract deployed just for you.
+- **Create your own invoice registry** - a personal smart contract deployed just for you.
 - **Issue invoices** with amount (USDC) and description. Each one gets its own sequential number (001, 002, …).
 - **Share** an invoice via link or QR code, or send it by email.
-- **Get paid in USDC** — the payer settles directly from their wallet to the contract.
-- **Verify on the explorer** — every paid invoice links to the real payment transaction on ArcScan.
+- **Get paid in USDC** - the payer settles directly from their wallet to the contract.
+- **Verify on the explorer** - every paid invoice links to the real payment transaction on ArcScan.
 
 ---
 
@@ -27,7 +27,7 @@ Most onchain invoicing demos use a single shared contract for everyone. ArcBill 
 - Every user owns their registry, with their **own sequential invoice numbering** and their own record of issued and paid invoices.
 - This mirrors how real accounting works: each entity keeps its own ledger, isolated and auditable.
 
-This gives each user a clean, independent, self-owned invoicing history — instead of everyone sharing one global list.
+This gives each user a clean, independent, self-owned invoicing history - instead of everyone sharing one global list.
 
 ---
 
